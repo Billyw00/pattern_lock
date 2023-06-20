@@ -75,7 +75,6 @@ class _PatternLockState extends State<PatternLock> {
         });
       },
       onPanUpdate: (DragUpdateDetails details) {
-        if(widget.usedPoint == null){
           RenderBox referenceBox = context.findRenderObject() as RenderBox;
           Offset localPosition =
           referenceBox.globalToLocal(details.globalPosition);
@@ -96,7 +95,6 @@ class _PatternLockState extends State<PatternLock> {
               }
             }
           });
-        }
       },
       child: CustomPaint(
         painter: _LockPainter(
