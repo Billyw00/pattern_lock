@@ -29,6 +29,8 @@ class PatternLock extends StatefulWidget {
   /// Callback that called when user's input complete. Called if user selected one or more points.
   final Function(List<int>) onInputComplete;
 
+  final List<int>? usedPoint;
+
   /// Creates [PatternLock] with given params.
   const PatternLock({
     Key? key,
@@ -41,6 +43,7 @@ class PatternLock extends StatefulWidget {
     this.selectThreshold = 25,
     this.fillPoints = false,
     required this.onInputComplete,
+    this.usedPoint,
   }) : super(key: key);
 
   @override
@@ -51,11 +54,19 @@ class _PatternLockState extends State<PatternLock> {
   List<int> used = [];
   Offset? currentPoint;
 
+@override
+  void initState() {
+    if(widget.usedPoint != null){
+      used = widget.usedPoint as List<int>;
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onPanEnd: (DragEndDetails details) {
-        if (used.isNotEmpty) {
+        if (used.isNotEmpty && widget.usedPoint == null) {
           widget.onInputComplete(used);
         }
         setState(() {
@@ -64,26 +75,28 @@ class _PatternLockState extends State<PatternLock> {
         });
       },
       onPanUpdate: (DragUpdateDetails details) {
-        RenderBox referenceBox = context.findRenderObject() as RenderBox;
-        Offset localPosition =
-            referenceBox.globalToLocal(details.globalPosition);
+        if(widget.usedPoint == null){
+          RenderBox referenceBox = context.findRenderObject() as RenderBox;
+          Offset localPosition =
+          referenceBox.globalToLocal(details.globalPosition);
 
-        Offset circlePosition(int n) => calcCirclePosition(
-              n,
-              referenceBox.size,
-              widget.dimension,
-              widget.relativePadding,
-            );
+          Offset circlePosition(int n) => calcCirclePosition(
+            n,
+            referenceBox.size,
+            widget.dimension,
+            widget.relativePadding,
+          );
 
-        setState(() {
-          currentPoint = localPosition;
-          for (int i = 0; i < widget.dimension * widget.dimension; ++i) {
-            final toPoint = (circlePosition(i) - localPosition).distance;
-            if (!used.contains(i) && toPoint < widget.selectThreshold) {
-              used.add(i);
+          setState(() {
+            currentPoint = localPosition;
+            for (int i = 0; i < widget.dimension * widget.dimension; ++i) {
+              final toPoint = (circlePosition(i) - localPosition).distance;
+              if (!used.contains(i) && toPoint < widget.selectThreshold) {
+                used.add(i);
+              }
             }
-          }
-        });
+          });
+        }
       },
       child: CustomPaint(
         painter: _LockPainter(
